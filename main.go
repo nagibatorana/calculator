@@ -18,7 +18,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// WebRTC структуры и переменные
 var jwtKey = []byte("verysecretkey")
 
 type User struct {
@@ -51,12 +50,9 @@ func NewServer() *Server {
 }
 
 func main() {
-	// Инициализация компонентов калькулятора
 	historyRepo := storage.NewHistoryRepository()
 	interpreter := business.NewInterpreter(historyRepo)
 	webHandler := presentation.NewWebHandler(interpreter)
-
-	// Восстановление истории
 	err := historyRepo.Restore()
 	if err != nil {
 		fmt.Printf("Ошибка восстановления истории: %v\n", err)
@@ -78,7 +74,6 @@ func main() {
 	http.HandleFunc("/api/session/decline", s.declineHandler)
 	http.HandleFunc("/api/session/cancel", s.cancelHandler)
 	http.HandleFunc("/ws", s.wsHandler)
-	//http.HandleFunc("/api/call-data/", callDataHandler)
 
 	http.HandleFunc("/api/call-data/", func(w http.ResponseWriter, r *http.Request) {
 		dataId := strings.TrimPrefix(r.URL.Path, "/api/call-data/")
@@ -320,3 +315,4 @@ func getUsernameFromHeader(r *http.Request) string {
 	}
 	return ""
 }
+
