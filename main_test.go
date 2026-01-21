@@ -12,7 +12,6 @@ import (
 	"testing"
 )
 
-// TestWebsiteOpening тестирует открытие сайтов
 func TestWebsiteOpening(t *testing.T) {
 	fmt.Println("🌐 ТЕСТИРОВАНИЕ ОТКРЫТИЯ САЙТОВ")
 	fmt.Println("═══════════════════════════════════════════════════════════")
@@ -52,7 +51,6 @@ func TestWebsiteOpening(t *testing.T) {
 	fmt.Println("═══════════════════════════════════════════════════════════")
 }
 
-// TestDeepSeekResponse тестирует ответы от DeepSeek
 func TestDeepSeekResponse(t *testing.T) {
 	fmt.Println("ТЕСТИРОВАНИЕ DEEPSEEK API")
 	fmt.Println("═══════════════════════════════════════════════════════════")
@@ -60,7 +58,6 @@ func TestDeepSeekResponse(t *testing.T) {
 	historyRepo := storage.NewHistoryRepository()
 	interpreter := business.NewInterpreter(historyRepo)
 
-	// Простые запросы, которые должны работать
 	tests := []struct {
 		name        string
 		question    string
@@ -90,7 +87,6 @@ func TestDeepSeekResponse(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			result, err := interpreter.Execute(test.question)
 			if err != nil {
-				// Если ошибка из-за лимитов API - пропускаем тест
 				if strings.Contains(err.Error(), "429") || strings.Contains(err.Error(), "limit") {
 					t.Skipf("Пропускаем тест '%s': лимит DeepSeek API исчерпан", test.name)
 					return
@@ -119,12 +115,9 @@ func TestDeepSeekResponse(t *testing.T) {
 	fmt.Println("═══════════════════════════════════════════════════════════")
 }
 
-// TestWebsiteAnalysis тестирует анализ содержимого сайтов через DeepSeek
 func TestWebsiteAnalysis(t *testing.T) {
 	fmt.Println("🔍 ТЕСТИРОВАНИЕ АНАЛИЗА САЙТОВ")
 	fmt.Println("═══════════════════════════════════════════════════════════")
-
-	// Создаем mock сервер с простым HTML содержимым
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		htmlContent := `
 		<!DOCTYPE html>
@@ -147,7 +140,6 @@ func TestWebsiteAnalysis(t *testing.T) {
 	interpreter := business.NewInterpreter(historyRepo)
 
 	t.Run("analyze website content", func(t *testing.T) {
-		// Используем команду анализа сайта
 		command := "расскажи о содержимом сайта " + mockServer.URL
 		result, err := interpreter.Execute(command)
 
@@ -166,7 +158,6 @@ func TestWebsiteAnalysis(t *testing.T) {
 			return
 		}
 
-		// Проверяем что получили осмысленный ответ
 		if len(resultStr) > 50 {
 			fmt.Printf("✅ Анализ сайта работает: получен ответ (%d символов)\n", len(resultStr))
 			fmt.Printf("   📝 Результат: %.100s...\n", resultStr)
@@ -178,21 +169,15 @@ func TestWebsiteAnalysis(t *testing.T) {
 	fmt.Println("═══════════════════════════════════════════════════════════")
 }
 
-// TestWebRTCDebug тестирует и отлаживает функциональность звонков
 func TestWebRTCDebug(t *testing.T) {
 	fmt.Println("🔧 ДИАГНОСТИКА ЗВОНКОВ")
 	fmt.Println("═══════════════════════════════════════════════════════════")
-
 	historyRepo := storage.NewHistoryRepository()
 	interpreter := business.NewInterpreter(historyRepo)
-
-	// Проверяем базовую команду входа
 	fmt.Println("1. Тестируем команду входа:")
 	result, err := interpreter.Execute("войти как testuser")
 	if err != nil {
 		fmt.Printf("   ❌ Ошибка входа: %v\n", err)
-
-		// Проверяем доступность сервера звонков
 		fmt.Println("2. Проверяем доступность сервера звонков:")
 		resp, err := http.Get("http://localhost:8080")
 		if err != nil {
@@ -204,8 +189,6 @@ func TestWebRTCDebug(t *testing.T) {
 		}
 	} else {
 		fmt.Printf("   ✅ Вход выполнен: %v\n", result)
-
-		// Проверяем команду звонка
 		fmt.Println("3. Тестируем команду звонка:")
 		result, err = interpreter.Execute("позвонить testuser2")
 		if err != nil {
@@ -219,15 +202,11 @@ func TestWebRTCDebug(t *testing.T) {
 	fmt.Println("═══════════════════════════════════════════════════════════")
 }
 
-// TestStableOperations тестирует только стабильные функции
 func TestStableOperations(t *testing.T) {
 	fmt.Println("🎯 СТАБИЛЬНЫЕ ТЕСТЫ")
 	fmt.Println("═══════════════════════════════════════════════════════════")
-
 	historyRepo := storage.NewHistoryRepository()
 	interpreter := business.NewInterpreter(historyRepo)
-
-	// Только выражения, которые точно работают
 	stableTests := []struct {
 		input    string
 		expected interface{}
@@ -257,7 +236,6 @@ func TestStableOperations(t *testing.T) {
 	fmt.Println("═══════════════════════════════════════════════════════════")
 }
 
-// TestCalculatorOperations тестирует базовые математические операции
 func TestCalculatorOperations(t *testing.T) {
 	historyRepo := storage.NewHistoryRepository()
 	interpreter := business.NewInterpreter(historyRepo)
@@ -290,9 +268,7 @@ func TestCalculatorOperations(t *testing.T) {
 	}
 }
 
-// TestCurlCommands тестирует curl команды
 func TestCurlCommands(t *testing.T) {
-	// Создаем тестовый HTTP сервер
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`{"status": "success", "message": "test response"}`))
@@ -336,23 +312,17 @@ func TestCurlCommands(t *testing.T) {
 	})
 }
 
-// TestFileOperations тестирует операции с файлами
 func TestFileOperations(t *testing.T) {
-	// Получаем абсолютный путь к папке test_files
 	testFilesDir, err := filepath.Abs("test_files")
 	if err != nil {
 		t.Fatalf("Не удалось получить абсолютный путь: %v", err)
 	}
-
-	// Проверяем, что папка существует
 	if _, err := os.Stat(testFilesDir); err != nil {
 		t.Fatalf("Папка test_files не существует: %v", err)
 	}
 
 	historyRepo := storage.NewHistoryRepository()
 	interpreter := business.NewInterpreter(historyRepo)
-
-	// Добавляем папку test_files в безопасные директории
 	interpreter.AddSafeDirectory(testFilesDir)
 
 	t.Run("open text file", func(t *testing.T) {
@@ -370,7 +340,6 @@ func TestFileOperations(t *testing.T) {
 	})
 }
 
-// TestHistory тестирует функциональность истории
 func TestHistory(t *testing.T) {
 	historyRepo := storage.NewHistoryRepository()
 	interpreter := business.NewInterpreter(historyRepo)
@@ -382,7 +351,6 @@ func TestHistory(t *testing.T) {
 		"8-3",
 	}
 
-	// Выполняем команды
 	for _, cmd := range commands {
 		interpreter.Execute(cmd)
 	}
@@ -408,7 +376,6 @@ func TestHistory(t *testing.T) {
 	})
 }
 
-// TestErrorHandling тестирует обработку ошибок
 func TestErrorHandling(t *testing.T) {
 	historyRepo := storage.NewHistoryRepository()
 	interpreter := business.NewInterpreter(historyRepo)
@@ -429,3 +396,4 @@ func TestErrorHandling(t *testing.T) {
 		}
 	})
 }
+
