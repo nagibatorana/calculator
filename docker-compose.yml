@@ -1,0 +1,11 @@
+services:
+  webrtc-calculator:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./storage:/app/storage
+      - ./business:/app/business
+    environment:
+      - ENV=production
+    restart: unless-stopped
