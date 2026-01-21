@@ -1,0 +1,197 @@
+расскажи о теореме Пифагора
+a = 10
+b = 20
+a + b
+(a + b) * 2
+a == 10
+b > a
+5 / 0
+curl http://127.0.0.1:49173
+x = curl http://127.0.0.1:49173
+2+2
+10 * 5
+15 / 3
+10 - 4
+(2+2)*2
+10 / 4
+5 / 0
+x = 5
+x + 3
+5 == 5
+5 == 3
+5 > 3
+3 < 5
+curl http://127.0.0.1:49177
+x = curl http://127.0.0.1:49177
+curl invalid-url
+расскажи о теореме Пифагора
+войти как testuser
+войти как testuser
+позвонить targetuser
+2+2
+5*5
+x = 10
+x + 5
+curl https://example.com
+history
+2 +
+undefined_var + 5
+123 = 5
+curl
+позвонить someone
+x = 25
+x + 5
+x = 100
+x / 4
+a = 5
+b = 10
+a * b
+a + b * 2
+2+2
+10 * 5
+15 / 3
+10 - 4
+(2+2)*2
+5 == 5
+5 > 3
+x = 10
+y = 5
+x + y
+x * y
+x = 20
+x + y
+2+2
+5*5
+x = 10
+x + 5
+15 / 3
+5 / 0
+undefined_var + 5
+2 +
+2 + 2
+x = 5
+2+2
+10 * 5
+15 / 3
+10 - 4
+(2+2)*2
+10 / 4
+5 / 0
+x = 5
+x + 3
+5 == 5
+5 == 3
+5 > 3
+3 < 5
+curl http://127.0.0.1:52274
+x = curl http://127.0.0.1:52274
+curl invalid-url
+расскажи о теореме Пифагора
+войти как testuser
+войти как testuser
+позвонить targetuser
+2+2
+5*5
+x = 10
+x + 5
+curl https://example.com
+history
+2 +
+undefined_var + 5
+123 = 5
+curl
+позвонить someone
+x = 25
+x + 5
+x = 100
+x / 4
+a = 5
+b = 10
+a * b
+a + b * 2
+2+2
+10 * 5
+15 / 3
+10 - 4
+(2+2)*2
+10 / 4
+5 / 0
+x = 5
+x + 3
+5 == 5
+5 == 3
+5 > 3
+3 < 5
+curl http://127.0.0.1:57541
+x = curl http://127.0.0.1:57541
+curl invalid-url
+расскажи о теореме Пифагора
+открой test.txt
+открой test.pdf
+включи видео test_video.mp4
+открой nonexistent.txt
+войти как testuser
+войти как testuser
+позвонить targetuser
+2+2
+5*5
+x = 10
+x + 5
+curl https://example.com
+history
+2 +
+undefined_var + 5
+123 = 5
+curl
+позвонить someone
+x = 25
+x + 5
+x = 100
+x / 4
+a = 5
+b = 10
+a * b
+a + b * 2
+2+2
+10 * 5
+15 / 3
+10 - 4
+(2+2)*2
+10 / 4
+5 / 0
+x = 5
+x + 3
+5 == 5
+5 == 3
+5 > 3
+3 < 5
+curl http://127.0.0.1:63357
+x = curl http://127.0.0.1:63357
+curl invalid-url
+расскажи о теореме Пифагора
+открой test.txt
+открой test.pdf
+включи видео test_video.mp4
+открой nonexistent.txt
+войти как testuser
+войти как testuser
+позвонить targetuser
+2+2
+5*5
+x = 10
+x + 5
+curl https://example.com
+history
+2 +
+undefined_var + 5
+123 = 5
+curl
+позвонить someone
+x = 25
+x + 5
+x = 100
+x / 4
+a = 5
+b = 10
+a * b
+a + b * 2
