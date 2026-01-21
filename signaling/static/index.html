@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebRTC Звонки</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-bg: #0a0a0a;
+            --secondary-bg: #1a0d0d;
+            --card-bg: #1f1f1f;
+            --accent-color: #8b0000;
+            --accent-hover: #a00000;
+            --accent-light: #b30000;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --border-color: #333333;
+            --gradient: linear-gradient(135deg, #8b0000, #660000);
+            --status-connected: #1a5c1a;
+            --status-pending: #38312e;
+            --incoming-call: #2a1a1a;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            background-image: linear-gradient(rgba(10, 10, 10, 0.85), rgba(10, 10, 10, 0.85)), 
+                      url('leo.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 25px 0;
+            background: var(--gradient);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(139, 0, 0, 0.3);
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 25px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 10px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px 16px;
+            margin: 8px 0;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            background: var(--secondary-bg);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(139, 0, 0, 0.2);
+        }
+
+        input::placeholder {
+            color: #666;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 5px 0;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-login {
+            background: var(--gradient);
+            color: white;
+        }
+
+        .btn-login:hover:not(:disabled) {
+            background: linear-gradient(135deg, #a00000, #800000);
+            transform: translateY(-2px);
+        }
+
+        .btn-call {
+            background: var(--gradient);
+            color: white;
+        }
+
+        .btn-call:hover:not(:disabled) {
+            background: linear-gradient(135deg, #a00000, #800000);
+            transform: translateY(-2px);
+        }
+
+        .btn-accept {
+            background: var(--status-connected);
+            color: white;
+        }
+
+        .btn-accept:hover:not(:disabled) {
+            background: #217021;
+            transform: translateY(-2px);
+        }
+
+        .btn-decline {
+            background: var(--accent-light);
+            color: white;
+        }
+
+        .btn-decline:hover:not(:disabled) {
+            background: #c40000;
+            transform: translateY(-2px);
+        }
+
+        .btn-hangup {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .btn-hangup:hover:not(:disabled) {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-row button {
+            flex: 1;
+        }
+
+        .videos {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 25px 0;
+            height: 300px;
+        }
+
+        @media (max-width: 768px) {
+            .videos {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+        }
+
+        .video-box {
+            background: #000;
+            border-radius: 12px;
+            position: relative;
+            border: 2px solid var(--border-color);
+            overflow: hidden;
+            min-height: 250px;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        .video-label {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            color: white;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 10;
+        }
+
+        .audio-only {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 3rem;
+            height: 100%;
+            background: var(--secondary-bg);
+            border-radius: 10px;
+        }
+
+        .status {
+            padding: 16px;
+            margin: 20px 0;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+            border: 2px solid var(--border-color);
+            background: var(--secondary-bg);
+        }
+
+        .status.connected {
+            background: var(--status-connected);
+            color: white;
+            border-color: var(--status-connected);
+        }
+
+        .status.pending {
+            background: var(--status-pending);
+            color: white;
+            border-color: var(--status-pending);
+        }
+
+        .status.error {
+            background: var(--status-error);
+            color: white;
+            border-color: var(--status-error);
+        }
+
+        .call-alert {
+            display: none;
+            background: var(--incoming-call);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+            border: 2px solid var(--accent-color);
+            box-shadow: 0 4px 12px rgba(139, 0, 0, 0.3);
+        }
+
+        .call-alert strong {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+            gap: 8px;
+        }
+
+        .emoji-container {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: 8px;
+        }
+
+        .incoming-controls {
+            margin-top: 15px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--secondary-bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-color);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-hover);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>WebRTC Звонки</h1>
+        </div>
+
+        <div class="controls-grid">
+            <div class="card">
+                <h3>Вход в систему</h3>
+                <input type="text" id="username" placeholder="Введите ваше имя">
+                <button class="btn-login" id="loginBtn">Войти</button>
+            </div>
+
+            <div class="card">
+                <h3>Создать звонок</h3>
+                <input type="text" id="target" placeholder="Имя собеседника">
+                <select id="type">
+                    <option value="video">Видеозвонок</option>
+                    <option value="audio">Аудиозвонок</option>
+                </select>
+                <button class="btn-call" id="callBtn" disabled>Начать звонок</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Входящие вызовы</h3>
+            <div id="incomingCall" class="call-alert">
+                <strong>Входящий вызов!
+                    <div class="emoji-container">👁️👄👁️</div>
+                </strong>
+                <p id="callInfo"></p>
+                <div class="btn-row incoming-controls">
+                    <button class="btn-accept" id="acceptBtn" disabled>Принять</button>
+                    <button class="btn-decline" id="declineBtn" disabled>Отклонить</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="videos">
+            <div class="video-box">
+                <video id="localVideo" autoplay muted playsinline></video>
+                <div id="localAudioOnly" class="audio-only" style="display: none;">Микрофон</div>
+            </div>
+            <div class="video-box">
+                <video id="remoteVideo" autoplay playsinline></video>
+                <div id="remoteAudioOnly" class="audio-only" style="display: none;">Динамики</div>
+            </div>
+        </div>
+
+        <div id="status" class="status">Не подключено</div>
+
+        <button class="btn-hangup" id="hangupBtn" style="display: none;">Завершить звонок</button>
+    </div>
+
+    <script>
+        const apiBase = location.origin;
+        let token = null;
+        let ws = null;
+        let pc = null;
+        let localStream = null;
+        let lastSession = null;
+        let pendingOffer = null;
+        let currentCallTarget = null;
+        let callType = 'video';
+
+        async function getCallData() {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const dataId = urlParams.get('dataId');
+                
+                if (!dataId) {
+                    console.log('Нет dataId в URL');
+                    return null;
+                }
+                
+                const response = await fetch(`/api/call-data/${dataId}`);
+                if (!response.ok) {
+                    throw new Error('Данные не найдены');
+                }
+                
+                const data = await response.json();
+                console.log('Получены данные звонка:', data);
+                
+                return data;
+            } catch (error) {
+                console.error('Ошибка загрузки данных:', error);
+                return null;
+            }
+        }
+
+        function updateStatus(message, type = '') {
+            const statusElement = document.getElementById('status');
+            statusElement.textContent = message;
+            statusElement.className = `status ${type}`;
+        }
+
+        function showHangupButton() {
+            document.getElementById('hangupBtn').style.display = 'block';
+        }
+
+        function hideHangupButton() {
+            document.getElementById('hangupBtn').style.display = 'none';
+        }
+
+        function updateVideoDisplay() {
+            const isVideoCall = callType === 'video';
+
+            if (isVideoCall) {
+                document.getElementById('localAudioOnly').style.display = 'none';
+                document.getElementById('localVideo').style.display = 'block';
+                document.getElementById('remoteAudioOnly').style.display = 'none';
+                document.getElementById('remoteVideo').style.display = 'block';
+            } else {
+                document.getElementById('localAudioOnly').style.display = 'flex';
+                document.getElementById('localVideo').style.display = 'none';
+                document.getElementById('remoteAudioOnly').style.display = 'flex';
+                document.getElementById('remoteVideo').style.display = 'none';
+            }
+        }
+
+        function resetCallState() {
+            if (pc) {
+                pc.close();
+                pc = null;
+            }
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+            document.getElementById('remoteVideo').srcObject = null;
+            document.getElementById('localVideo').srcObject = null;
+            hideHangupButton();
+            document.getElementById('incomingCall').style.display = 'none';
+            document.getElementById('acceptBtn').disabled = true;
+            document.getElementById('declineBtn').disabled = true;
+            document.getElementById('callBtn').disabled = false;
+            pendingOffer = null;
+            currentCallTarget = null;
+
+            document.getElementById('localAudioOnly').style.display = 'none';
+            document.getElementById('remoteAudioOnly').style.display = 'none';
+            document.getElementById('localVideo').style.display = 'block';
+            document.getElementById('remoteVideo').style.display = 'block';
+
+            updateStatus('Готов к работе', 'connected');
+        }
+
+        function sendHangupSignal(target) {
+            if (ws && ws.readyState === WebSocket.OPEN && target) {
+                ws.send(JSON.stringify({
+                    type: 'signal',
+                    data: {
+                        type: 'hangup',
+                        target: target,
+                        from: document.getElementById('username').value
+                    }
+                }));
+            }
+        }
+
+        async function autoLogin() {
+            console.log('Начинаю автоматический вход...');
+            
+            const callData = await getCallData();
+            
+            if (callData && callData.token && callData.username) {
+                console.log('Найдены данные для автоматического входа:', callData);
+                document.getElementById('username').value = callData.username;
+                if (callData.target) {
+                    document.getElementById('target').value = callData.target;
+                }
+                
+                token = callData.token;
+                updateStatus('Автоматический вход...', 'pending');
+
+                connectWebSocket(callData);
+            } else {
+                console.log('Автоматический вход не выполнен - нет данных');
+                updateStatus('Войдите в систему');
+            }
+        }
+
+        function connectWebSocket(callData) {
+            try {
+                updateStatus('Подключение к серверу...', 'pending');
+                ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws?token=' + token);
+                ws.onopen = () => {
+                    console.log('WebSocket подключен!');
+                    document.getElementById('callBtn').disabled = false;
+                    updateStatus('Подключено и готово к звонкам', 'connected');
+                    if (callData.autoCall === 'true' && callData.target) {
+                        console.log('Запуск автоматического звонка на:', callData.target);
+                        setTimeout(() => {
+                            console.log('Начинаю автоматический звонок...');
+                            document.getElementById('callBtn').click();
+                        }, 2000);
+                    }
+                };
+
+                ws.onmessage = (evt) => {
+                    console.log('Получено сообщение:', evt.data);
+                    handleWS(JSON.parse(evt.data));
+                };
+
+                ws.onclose = () => {
+                    console.log('WebSocket закрыт');
+                    updateStatus('Отключено', 'error');
+                };
+
+                ws.onerror = (error) => {
+                    console.error('WebSocket ошибка:', error);
+                    updateStatus('Ошибка подключения', 'error');
+                };
+
+            } catch (error) {
+                console.error('Ошибка подключения:', error);
+                updateStatus('Ошибка автоматического входа', 'error');
+            }
+        }
+
+        document.getElementById('loginBtn').onclick = async () => {
+            const username = document.getElementById('username').value;
+            updateStatus('Вход...', 'pending');
+            try {
+                const res = await fetch(apiBase + '/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username })
+                });
+
+                const j = await res.json();
+                token = j.token;
+                updateStatus('Подключено', 'connected');
+                ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws?token=' + token);
+                ws.onopen = () => {
+                    document.getElementById('callBtn').disabled = false;
+                };
+                ws.onmessage = (evt) => handleWS(JSON.parse(evt.data));
+                ws.onclose = () => {
+                    updateStatus('Отключено', 'error');
+                };
+
+            } catch (error) {
+                updateStatus('Ошибка входа', 'error');
+            }
+        };
+
+        document.getElementById('callBtn').onclick = async () => {
+            const target = document.getElementById('target').value;
+            callType = document.getElementById('type').value;
+
+            if (!target) {
+                return;
+            }
+
+            updateStatus('Звонок...', 'pending');
+            currentCallTarget = target;
+
+            try {
+                const res = await fetch(apiBase + '/api/session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ targetUsername: target, type: callType })
+                });
+
+                const sess = await res.json();
+                lastSession = sess;
+
+                await startLocalPeer(true, target);
+
+            } catch (error) {
+                updateStatus('Ошибка звонка', 'error');
+                resetCallState();
+            }
+        };
+
+        document.getElementById('acceptBtn').onclick = async () => {
+            if (!lastSession) return;
+
+            updateStatus('Принятие...', 'pending');
+            currentCallTarget = lastSession.caller;
+            callType = lastSession.type;
+
+            try {
+                await fetch(apiBase + '/api/session/accept', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ sessionId: lastSession.sessionId })
+                });
+
+                if (pendingOffer) {
+                    await ensureLocalStream(callType);
+                    await startLocalPeer(false, pendingOffer.from);
+                    await pc.setRemoteDescription(pendingOffer.offer);
+                    const answer = await pc.createAnswer();
+                    await pc.setLocalDescription(answer);
+
+                    ws.send(JSON.stringify({
+                        type: 'signal',
+                        data: {
+                            type: 'answer',
+                            target: pendingOffer.from,
+                            data: pc.localDescription,
+                            from: document.getElementById('username').value
+                        }
+                    }));
+
+                    pendingOffer = null;
+                }
+
+                document.getElementById('incomingCall').style.display = 'none';
+                document.getElementById('acceptBtn').disabled = true;
+                document.getElementById('declineBtn').disabled = true;
+                document.getElementById('callBtn').disabled = true;
+                showHangupButton();
+
+            } catch (error) {
+                updateStatus('Ошибка принятия', 'error');
+                resetCallState();
+            }
+        };
+
+        document.getElementById('declineBtn').onclick = async () => {
+            if (!lastSession) return;
+
+            try {
+                await fetch(apiBase + '/api/session/decline', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ sessionId: lastSession.sessionId })
+                });
+
+                resetCallState();
+
+            } catch (error) {
+            }
+        };
+
+        async function handleWS(msg) {
+            if (msg.type === 'session_updated') {
+                lastSession = msg.data;
+
+                if (lastSession.status === 'pending' && lastSession.target === document.getElementById('username').value) {
+                    const callTypeText = lastSession.type === 'video' ? 'видео' : 'аудио';
+                    document.getElementById('callInfo').textContent = `${lastSession.caller} (${callTypeText})`;
+                    document.getElementById('acceptBtn').disabled = false;
+                    document.getElementById('declineBtn').disabled = false;
+                    document.getElementById('incomingCall').style.display = 'block';
+                    updateStatus('Входящий вызов!', 'pending');
+                } else if (lastSession.status === 'declined' || lastSession.status === 'cancelled') {
+                    resetCallState();
+                }
+                return;
+            }
+
+            if (msg.type === 'signal') {
+                const d = msg.data;
+
+                if (d.type === 'offer') {
+                    pendingOffer = {
+                        offer: d.data,
+                        from: d.from
+                    };
+
+                    document.getElementById('callInfo').textContent = d.from;
+                    document.getElementById('acceptBtn').disabled = false;
+                    document.getElementById('declineBtn').disabled = false;
+                    document.getElementById('incomingCall').style.display = 'block';
+                    updateStatus('Входящий вызов!', 'pending');
+
+                } else if (d.type === 'answer') {
+                    if (pc) {
+                        await pc.setRemoteDescription(d.data);
+                        updateStatus('Соединено!', 'connected');
+                        showHangupButton();
+                        document.getElementById('callBtn').disabled = true;
+                    }
+
+                } else if (d.type === 'ice-candidate') {
+                    if (pc) {
+                        try {
+                            await pc.addIceCandidate(d.data);
+                        } catch (e) { }
+                    }
+                } else if (d.type === 'hangup') {
+                    updateStatus('Звонок завершен', 'error');
+                    resetCallState();
+                }
+            }
+        }
+
+        async function startLocalPeer(isCaller, target) {
+            await ensureLocalStream(callType);
+
+            const config = {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' }
+                ]
+            };
+
+            pc = new RTCPeerConnection(config);
+
+            pc.onicecandidate = e => {
+                if (e.candidate) {
+                    ws.send(JSON.stringify({
+                        type: 'signal',
+                        data: {
+                            type: 'ice-candidate',
+                            target: target,
+                            data: e.candidate,
+                            from: document.getElementById('username').value
+                        }
+                    }));
+                }
+            };
+
+            pc.ontrack = e => {
+                document.getElementById('remoteVideo').srcObject = e.streams[0];
+                updateVideoDisplay();
+            };
+
+            pc.onconnectionstatechange = () => {
+                if (pc.connectionState === 'connected') {
+                    updateStatus('Соединено!', 'connected');
+                    showHangupButton();
+                    updateVideoDisplay();
+                } else if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+                    updateStatus('Соединение потеряно', 'error');
+                    resetCallState();
+                }
+            };
+
+            if (localStream) {
+                localStream.getTracks().forEach(track => {
+                    pc.addTrack(track, localStream);
+                });
+            }
+
+            if (isCaller) {
+                try {
+                    const offer = await pc.createOffer();
+                    await pc.setLocalDescription(offer);
+                    ws.send(JSON.stringify({
+                        type: 'signal',
+                        data: {
+                            type: 'offer',
+                            target: target,
+                            data: pc.localDescription,
+                            from: document.getElementById('username').value
+                        }
+                    }));
+                    updateStatus('Ожидание ответа...', 'pending');
+                    showHangupButton();
+                    document.getElementById('callBtn').disabled = true;
+                    updateVideoDisplay();
+                } catch (error) {
+                    updateStatus('Ошибка соединения', 'error');
+                    resetCallState();
+                }
+            }
+        }
+
+        async function ensureLocalStream(type) {
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+
+            try {
+                const constraints = {
+                    audio: true,
+                    video: type === 'video'
+                };
+
+                localStream = await navigator.mediaDevices.getUserMedia(constraints);
+
+                if (type === 'video') {
+                    document.getElementById('localVideo').srcObject = localStream;
+                } else {
+                    document.getElementById('localVideo').srcObject = null;
+                }
+
+                updateVideoDisplay();
+
+            } catch (error) {
+                try {
+                    localStream = await navigator.mediaDevices.getUserMedia({
+                        video: false,
+                        audio: true
+                    });
+                    document.getElementById('localVideo').srcObject = null;
+                    updateVideoDisplay();
+                } catch (audioError) {
+                    throw error;
+                }
+            }
+        }
+
+        document.getElementById('hangupBtn').onclick = () => {
+            hangUp();
+        };
+
+        function hangUp() {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                if (currentCallTarget) {
+                    sendHangupSignal(currentCallTarget);
+                }
+                ws.close(1000, "Call ended");
+            }
+            if (currentCallTarget) {
+                sendHangupSignal(currentCallTarget);
+            }
+
+            if (lastSession) {
+                fetch(apiBase + '/api/session/cancel', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ sessionId: lastSession.sessionId })
+                }).catch(err => { });
+            }
+
+            resetCallState();
+        }
+
+        window.addEventListener('beforeunload', () => {
+            if (currentCallTarget) {
+                sendHangupSignal(currentCallTarget);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', autoLogin);
+    </script>
+</body>
+</html>
